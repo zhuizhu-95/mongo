@@ -36,7 +36,11 @@ let port;
 
     testColl = createCollWithInvalidIndex(testColl);
 
+    // Skip validation on shutdown since the invalid index options are still on the catalog and
+    // the index validator will detect an inconsistency between `$listCatalog` and `listIndexes`.
+    TestData.skipCollectionAndIndexValidation = true;
     MongoRunner.stopMongod(mongod);
+    TestData.skipCollectionAndIndexValidation = false;
 
     jsTestLog("Exiting startStandaloneWithInvalidIndexSpec.");
 })();
@@ -51,7 +55,7 @@ let port;
         startMongodOnExistingPath(dbPath);
     });
 
-    assert(rawMongoProgramOutput().match("Fatal assertion.*28782"),
+    assert(rawMongoProgramOutput("Fatal assertion").match("28782"),
            "Mongod should have aborted due to an invalid index descriptor.");
     jsTestLog("Exiting restartAndVerifyMongodCrashes.");
 })();
